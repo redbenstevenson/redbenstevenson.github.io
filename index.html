@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Higher or Lower: Gini Coefficient</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .game-area {
+            display: flex;
+            justify-content: space-between;
+            margin: 2rem 0;
+        }
+        
+        .country-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            width: 45%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+        
+        .country-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .country-flag {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        
+        .country-name {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+        
+        .gini-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #fdbb2d;
+            margin: 1rem 0;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        button {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .higher-btn {
+            background: linear-gradient(to right, #4CAF50, #45a049);
+            color: white;
+        }
+        
+        .lower-btn {
+            background: linear-gradient(to right, #f44336, #da190b);
+            color: white;
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+        }
+        
+        button:active {
+            transform: scale(0.95);
+        }
+        
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 1.5rem;
+            font-size: 1.2rem;
+        }
+        
+        .score-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+        }
+        
+        .result-message {
+            font-size: 1.5rem;
+            margin: 1.5rem 0;
+            min-height: 2rem;
+            font-weight: bold;
+        }
+        
+        .correct {
+            color: #4CAF50;
+        }
+        
+        .incorrect {
+            color: #f44336;
+        }
+        
+        .game-explanation {
+            margin-top: 2rem;
+            text-align: left;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 15px;
+        }
+        
+        .game-explanation h2 {
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .restart-btn {
+            background: linear-gradient(to right, #2196F3, #0b7dda);
+            color: white;
+            margin-top: 1rem;
+        }
+        
+        @media (max-width: 600px) {
+            .game-area {
+                flex-direction: column;
+                align-items: center;
+                gap: 1.5rem;
+            }
+            
+            .country-card {
+                width: 90%;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Higher or Lower</h1>
+        <p class="subtitle">Guess which country has the higher Gini coefficient</p>
+        
+        <div class="score-board">
+            <div class="score-item">Score: <span id="score">0</span></div>
+            <div class="score-item">Streak: <span id="streak">0</span></div>
+            <div class="score-item">Best Streak: <span id="best-streak">0</span></div>
+        </div>
+        
+        <div class="game-area">
+            <div class="country-card" id="country1">
+                <div class="country-flag" id="flag1">🇺🇸</div>
+                <div class="country-name" id="name1">United States</div>
+                <div class="gini-value" id="gini1">41.5</div>
+            </div>
+            
+            <div class="country-card" id="country2">
+                <div class="country-flag" id="flag2">🇨🇦</div>
+                <div class="country-name" id="name2">Canada</div>
+                <div class="gini-value" id="gini2">33.3</div>
+            </div>
+        </div>
+        
+        <div class="result-message" id="result"></div>
+        
+        <div class="controls">
+            <button class="higher-btn" id="higher-btn">Higher</button>
+            <button class="lower-btn" id="lower-btn">Lower</button>
+        </div>
+        
+        <button class="restart-btn" id="restart-btn">New Game</button>
+        
+        <div class="game-explanation">
+            <h2>About Gini Coefficient</h2>
+            <p>The Gini coefficient measures income inequality within a country, ranging from 0 (perfect equality) to 1 (perfect inequality). In this game, values are multiplied by 100 for display.</p>
+            <p>A higher Gini coefficient means greater income inequality, while a lower value means more equal distribution of income.</p>
+        </div>
+    </div>
+
+    <script>
+        // Country data with Gini coefficients and flags
+        const countries = [
+            { name: "South Africa", gini: 63.0, flag: "🇿🇦" },
+            { name: "Namibia", gini: 59.1, flag: "🇳🇦" },
+            { name: "Zambia", gini: 57.1, flag: "🇿🇲" },
+            { name: "Brazil", gini: 53.4, flag: "🇧🇷" },
+            { name: "Colombia", gini: 51.3, flag: "🇨🇴" },
+            { name: "Panama", gini: 49.9, flag: "🇵🇦" },
+            { name: "Chile", gini: 46.0, flag: "🇨🇱" },
+            { name: "Mexico", gini: 45.4, flag: "🇲🇽" },
+            { name: "United States", gini: 41.5, flag: "🇺🇸" },
+            { name: "China", gini: 38.5, flag: "🇨🇳" },
+            { name: "Turkey", gini: 41.9, flag: "🇹🇷" },
+            { name: "United Kingdom", gini: 35.1, flag: "🇬🇧" },
+            { name: "Canada", gini: 33.3, flag: "🇨🇦" },
+            { name: "Australia", gini: 34.4, flag: "🇦🇺" },
+            { name: "Germany", gini: 31.7, flag: "🇩🇪" },
+            { name: "France", gini: 32.7, flag: "🇫🇷" },
+            { name: "Japan", gini: 32.9, flag: "🇯🇵" },
+            { name: "South Korea", gini: 31.4, flag: "🇰🇷" },
+            { name: "Norway", gini: 27.6, flag: "🇳🇴" },
+            { name: "Sweden", gini: 30.0, flag: "🇸🇪" },
+            { name: "Ukraine", gini: 25.6, flag: "🇺🇦" },
+            { name: "Slovakia", gini: 23.2, flag: "🇸🇰" },
+            { name: "Slovenia", gini: 24.2, flag: "🇸🇮" }
+        ];
+
+        // Game state
+        let currentCountries = [];
+        let score = 0;
+        let streak = 0;
+        let bestStreak = 0;
+        let gameActive = true;
+
+        // DOM elements
+        const country1Element = document.getElementById('country1');
+        const country2Element = document.getElementById('country2');
+        const name1Element = document.getElementById('name1');
+        const name2Element = document.getElementById('name2');
+        const flag1Element = document.getElementById('flag1');
+        const flag2Element = document.getElementById('flag2');
+        const gini1Element = document.getElementById('gini1');
+        const gini2Element = document.getElementById('gini2');
+        const higherBtn = document.getElementById('higher-btn');
+        const lowerBtn = document.getElementById('lower-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const scoreElement = document.getElementById('score');
+        const streakElement = document.getElementById('streak');
+        const bestStreakElement = document.getElementById('best-streak');
+        const resultElement = document.getElementById('result');
+
+        // Initialize the game
+        function initGame() {
+            score = 0;
+            streak = 0;
+            gameActive = true;
+            updateScoreDisplay();
+            resultElement.textContent = '';
+            resultElement.className = 'result-message';
+            selectNewCountries();
+        }
+
+        // Select two random countries
+        function selectNewCountries() {
+            // Make sure we don't select the same country twice
+            let index1 = Math.floor(Math.random() * countries.length);
+            let index2;
+            
+            do {
+                index2 = Math.floor(Math.random() * countries.length);
+            } while (index1 === index2);
+            
+            currentCountries = [countries[index1], countries[index2]];
+            
+            // Randomly assign countries to left/right positions
+            if (Math.random() > 0.5) {
+                currentCountries = [currentCountries[1], currentCountries[0]];
+            }
+            
+            updateCountryDisplay();
+        }
+
+        // Update the display with current countries
+        function updateCountryDisplay() {
+            name1Element.textContent = currentCountries[0].name;
+            name2Element.textContent = currentCountries[1].name;
+            flag1Element.textContent = currentCountries[0].flag;
+            flag2Element.textContent = currentCountries[1].flag;
+            gini1Element.textContent = currentCountries[0].gini.toFixed(1);
+            gini2Element.textContent = '?';
+        }
+
+        // Update score display
+        function updateScoreDisplay() {
+            scoreElement.textContent = score;
+            streakElement.textContent = streak;
+            bestStreakElement.textContent = bestStreak;
+        }
+
+        // Check the player's guess
+        function checkGuess(isHigher) {
+            if (!gameActive) return;
+            
+            const country1Gini = currentCountries[0].gini;
+            const country2Gini = currentCountries[1].gini;
+            
+            // Reveal the second country's Gini coefficient
+            gini2Element.textContent = country2Gini.toFixed(1);
+            
+            let correct = false;
+            
+            if (isHigher && country2Gini > country1Gini) {
+                correct = true;
+            } else if (!isHigher && country2Gini < country1Gini) {
+                correct = true;
+            }
+            
+            // Update game state
+            if (correct) {
+                score++;
+                streak++;
+                if (streak > bestStreak) {
+                    bestStreak = streak;
+                }
+                resultElement.textContent = 'Correct!';
+                resultElement.className = 'result-message correct';
+            } else {
+                streak = 0;
+                resultElement.textContent = 'Incorrect!';
+                resultElement.className = 'result-message incorrect';
+            }
+            
+            updateScoreDisplay();
+            
+            // Wait a moment and then show next countries
+            setTimeout(() => {
+                if (correct) {
+                    selectNewCountries();
+                } else {
+                    gameActive = false;
+                    resultElement.textContent = `Game Over! Final Score: ${score}`;
+                }
+            }, 1500);
+        }
+
+        // Event listeners
+        higherBtn.addEventListener('click', () => checkGuess(true));
+        lowerBtn.addEventListener('click', () => checkGuess(false));
+        restartBtn.addEventListener('click', initGame);
+
+        // Start the game
+        initGame();
+    </script>
+</body>
+</html>
